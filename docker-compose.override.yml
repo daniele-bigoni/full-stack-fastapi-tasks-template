@@ -1,10 +1,5 @@
 services:
 
-  # Local services are available on their ports, but also available on:
-  # http://api.localhost.tiangolo.com: backend
-  # http://dashboard.localhost.tiangolo.com: frontend
-  # etc. To enable it, update .env, set:
-  # DOMAIN=localhost.tiangolo.com
   proxy:
     image: traefik:3.0
     volumes:
@@ -55,12 +50,31 @@ services:
     ports:
       - "8080:8080"
 
+  prestart:
+    build:
+      network: host
+    develop:
+      watch:
+        - path: ./backend
+          action: sync
+          target: /app
+          ignore:
+            - ./backend/.venv
+            - .venv
+        - path: ./backend/pyproject.toml
+          action: rebuild
+        - path: ./pypiserver/packages/stack-datamodel
+          action: rebuild
+        - path: ./pypiserver/packages/stack-settings
+          action: rebuild
+
   backend:
     restart: "no"
     ports:
       - "8000:8000"
     build:
-      context: ./backend
+      network: host
+      context: backend
     # command: sleep infinity  # Infinite loop to keep container alive doing nothing
     command:
       - fastapi
@@ -76,6 +90,10 @@ services:
             - ./backend/.venv
             - .venv
         - path: ./backend/pyproject.toml
+          action: rebuild
+        - path: ./pypiserver/packages/stack-datamodel
+          action: rebuild
+        - path: ./pypiserver/packages/stack-settings
           action: rebuild
     # TODO: remove once coverage is done locally
     volumes:
@@ -97,14 +115,18 @@ services:
     ports:
       - "5173:80"
     build:
-      context: ./frontend
+      context: frontend
       args:
         - VITE_API_URL=http://localhost:8000
         - NODE_ENV=development
+    develop:
+      watch:
+        - path: ./frontend
+          action: rebuild
 
   playwright:
     build:
-      context: ./frontend
+      context: frontend
       dockerfile: Dockerfile.playwright
       args:
         - VITE_API_URL=http://backend:8000
@@ -126,6 +148,27 @@ services:
       - ./frontend/test-results:/app/test-results
     ports:
       - 9323:9323
+
+  rabbitmq:
+    ports:
+      - ${RABBITMQ_PORT?Variable not set}:${RABBITMQ_PORT?Variable not set}
+      - ${RABBITMQ_GUI_PORT?Variable not set}:${RABBITMQ_GUI_PORT?Variable not set}
+
+  flower:
+    build:
+      network: host
+
+  worker-queue-alpha:
+    build:
+      network: host
+    volumes:
+      - ./workers/worker-queue-alpha:/app
+
+  worker-queue-beta:
+    build:
+      network: host
+    volumes:
+      - ./workers/worker-queue-beta:/app
 
 networks:
   traefik-public:

@@ -51,6 +51,12 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type LoginRoute = {
+  mode: string
+  sso_provider?: string
+  sso_openid?: string
+}
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -81,6 +87,10 @@ export type UserRegister = {
     email: string;
     password: string;
     full_name?: (string | null);
+};
+
+export type UserActivate = {
+  token: string;
 };
 
 export type UsersPublic = {
@@ -205,6 +215,12 @@ export type UsersRegisterUserData = {
 };
 
 export type UsersRegisterUserResponse = (UserPublic);
+
+export type UserActivateUserData = {
+    requestBody: UserActivate;
+};
+
+export type UserActivateUserResponse = (UserPublic);
 
 export type UsersReadUserByIdData = {
     userId: string;

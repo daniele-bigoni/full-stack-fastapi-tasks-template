@@ -1,0 +1,208 @@
+{
+  "variables": {
+    "applicationIdAppA": "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e",
+    "applicationIdAppB": "e9fdb985-9173-4e01-9d73-ac2d60d1dc8f",
+    "apiKey": "dN28847Ly1kPzYrgAgnth_Zee04oOBDVIyfKdT_OMII",
+    "asymmetricKeyId": "#{UUID()}",
+    "newThemeId": "#{UUID()}",
+    "defaultTenantId": "d7d09513-a3f5-401c-9685-34ab6c552453",
+    "adminEmail": "admin@example.com",
+    "adminPassword": "password"
+  },
+  "apiKeys": [
+    {
+      "key": "#{apiKey}",
+      "description": "Unrestricted API key"
+    }
+  ],
+  "requests": [
+    {
+      "method": "POST",
+      "url": "/api/key/generate/#{asymmetricKeyId}",
+      "tenantId": "#{defaultTenantId}",
+      "body": {
+        "key": {
+          "algorithm": "RS256",
+          "name": "For exampleapp",
+          "length": 2048
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "url": "api/system-configuration",
+      "body": {
+        "systemConfiguration": {
+          "corsConfiguration": {
+            "allowCredentials": true,
+            "allowedMethods": [
+              "GET",
+              "POST",
+              "OPTIONS"
+            ],
+            "allowedOrigins": [
+              "http://localhost:8000"
+            ],
+            "debug": false,
+            "enabled": true,
+            "preflightMaxAgeInSeconds": 0
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/user/registration",
+      "body": {
+        "user": {
+          "email": "#{adminEmail}",
+          "password": "#{adminPassword}"
+        },
+        "registration": {
+          "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+          "roles": [
+            "admin"
+          ]
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{applicationIdAppA}",
+      "tenantId": "#{defaultTenantId}",
+      "body": {
+        "application": {
+          "name": "App A",
+          "oauthConfiguration": {
+            "authorizedURLValidationPolicy": "AllowWildcards",
+            "authorizedRedirectURLs": [
+              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-a/callback",
+              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-a/callback-html"
+            ],
+            "authorizedOriginURLs": [
+              "http://localhost:8000",
+              "http://localhost:5173"
+            ],
+            "clientSecret": "fusionauth-client-secret-app-a-changethis",
+            "logoutURL": "http://localhost:8000/logout",
+            "enabledGrants": [
+              "authorization_code",
+              "refresh_token"
+            ],
+            "debug": true,
+            "generateRefreshTokens": true,
+            "requireRegistration": true,
+            "proofKeyForCodeExchangePolicy": "Required"
+          },
+          "jwtConfiguration": {
+            "enabled": true,
+            "accessTokenKeyId": "#{asymmetricKeyId}",
+            "idTokenKeyId": "#{asymmetricKeyId}"
+          },
+          "registrationConfiguration": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/user/registration/00000000-0000-0000-0000-111111111111",
+      "body": {
+        "user": {
+          "birthDate": "1985-11-23",
+          "email": "richard@app-a.com",
+          "firstName": "Richard",
+          "lastName": "Hendricks",
+          "password": "password"
+        },
+        "registration": {
+          "applicationId": "#{applicationIdAppA}"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{applicationIdAppB}",
+      "tenantId": "#{defaultTenantId}",
+      "body": {
+        "application": {
+          "name": "App B",
+          "oauthConfiguration": {
+            "authorizedURLValidationPolicy": "AllowWildcards",
+            "authorizedRedirectURLs": [
+              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-b/callback",
+              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-b/callback-html"
+            ],
+            "authorizedOriginURLs": [
+              "http://localhost:8000",
+              "http://localhost:5173"
+            ],
+            "clientSecret": "fusionauth-client-secret-app-b-changethis",
+            "logoutURL": "http://localhost:8000/logout",
+            "enabledGrants": [
+              "authorization_code",
+              "refresh_token"
+            ],
+            "debug": true,
+            "generateRefreshTokens": true,
+            "requireRegistration": true,
+            "proofKeyForCodeExchangePolicy": "Required"
+          },
+          "jwtConfiguration": {
+            "enabled": true,
+            "accessTokenKeyId": "#{asymmetricKeyId}",
+            "idTokenKeyId": "#{asymmetricKeyId}"
+          },
+          "registrationConfiguration": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/user/registration/00000000-0000-0000-0000-111111111112",
+      "body": {
+        "user": {
+          "birthDate": "1985-11-23",
+          "email": "richard@app-b.com",
+          "firstName": "Richard",
+          "lastName": "Hendricks",
+          "password": "password"
+        },
+        "registration": {
+          "applicationId": "#{applicationIdAppB}"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/theme/#{newThemeId}",
+      "body": {
+        "sourceThemeId": "75a068fd-e94b-451a-9aeb-3ddb9a3b5987",
+        "theme": {
+          "name": "React theme"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "url": "/api/theme/#{newThemeId}",
+      "body": {
+        "theme": {
+          "stylesheet": "@{css/styles.css}"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "url": "/api/tenant/#{defaultTenantId}",
+      "body": {
+        "tenant": {
+          "themeId": "#{newThemeId}"
+        }
+      }
+    }
+  ]
+}

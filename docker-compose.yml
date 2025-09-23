@@ -14,10 +14,9 @@ services:
     env_file:
       - .env
     environment:
-      - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: ${TZ?Variable not set}
+      PGTZ: ${TZ?Variable not set}
 
   adminer:
     image: adminer
@@ -45,7 +44,12 @@ services:
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
-      context: ./backend
+      context: backend
+      args:
+        PRIVATE_PYPI_HOST: ${PRIVATE_PYPI_HOST?Variable not set}
+        PRIVATE_PYPI_PORT: ${PRIVATE_PYPI_PORT?Variable not set}
+        PRIVATE_PYPI_INDEX: ${PRIVATE_PYPI_INDEX?Variable not set}
+        TZ: ${TZ?Variable not set}
     networks:
       - traefik-public
       - default
@@ -61,19 +65,16 @@ services:
       - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
       - ENVIRONMENT=${ENVIRONMENT}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
       - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
       - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
       - POSTGRES_SERVER=db
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
+      #- OAUTH_FUSIONAUTH_ISSUER=http://fusionauth.${DOMAIN?Variable not set}:9011
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -94,9 +95,8 @@ services:
       - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
       - ENVIRONMENT=${ENVIRONMENT}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
       - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - USERS_OPEN_REGISTRATION=${USERS_OPEN_REGISTRATION}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
@@ -105,17 +105,22 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
-
+      #- OAUTH_FUSIONAUTH_ISSUER=http://fusionauth.${DOMAIN?Variable not set}:9011
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
       interval: 10s
       timeout: 5s
       retries: 5
-
     build:
-      context: ./backend
+      context: backend
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-false}
+        PRIVATE_PYPI_HOST: ${PRIVATE_PYPI_HOST?Variable not set}
+        PRIVATE_PYPI_PORT: ${PRIVATE_PYPI_PORT?Variable not set}
+        PRIVATE_PYPI_INDEX: ${PRIVATE_PYPI_INDEX?Variable not set}
+        TZ: ${TZ?Variable not set}
+    platform: linux/amd64 # Patch for M1 Mac
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -133,6 +138,81 @@ services:
 
       # Enable redirection for HTTP and HTTPS
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
+
+  search:
+    image: opensearchproject/opensearch:2.11.0
+    env_file:
+      - .env
+    environment:
+      cluster.name: fusionauth
+      discovery.type: single-node
+      node.name: search
+      plugins.security.disabled: true
+      bootstrap.memory_lock: true
+      OPENSEARCH_JAVA_OPTS: ${OAUTH_FUSIONAUTH_OPENSEARCH_JAVA_OPTS}
+    healthcheck:
+      interval: 10s
+      retries: 80
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:9200/
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 9200:9200 # REST API
+      - 9600:9600 # Performance Analyzer
+    volumes:
+      - search_data:/usr/share/opensearch/data
+    networks:
+      - search_net
+
+  fusionauth:
+    image: fusionauth/fusionauth-app:latest
+    depends_on:
+      db:
+        condition: service_healthy
+      search:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/fusionauth
+      DATABASE_ROOT_USERNAME: ${POSTGRES_USER}
+      DATABASE_ROOT_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_USERNAME: ${OAUTH_FUSIONAUTH_DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${OAUTH_FUSIONAUTH_DATABASE_PASSWORD}
+      FUSIONAUTH_APP_MEMORY: ${OAUTH_FUSIONAUTH_APP_MEMORY}
+      FUSIONAUTH_APP_RUNTIME_MODE: ${OAUTH_FUSIONAUTH_APP_RUNTIME_MODE}
+      FUSIONAUTH_APP_URL: http://fusionauth:9011
+      SEARCH_SERVERS: http://search:9200
+      SEARCH_TYPE: elasticsearch
+      FUSIONAUTH_APP_KICKSTART_FILE: ${OAUTH_FUSIONAUTH_APP_KICKSTART_FILE}
+    networks:
+      - traefik-public
+      - search_net
+      - default
+    restart: unless-stopped
+    ports:
+      - 9011:9011
+    volumes:
+      - fusionauth_config:/usr/local/fusionauth/config
+      - ./fusionauth/kickstart:/usr/local/fusionauth/kickstart
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-http.rule=Host(`fusionauth.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-http.middlewares=https-redirect
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-https.rule=Host(`fusionauth.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-fusionauth-https.tls.certresolver=le
+      - traefik.http.services.${STACK_NAME?Variable not set}-fusionauth.loadbalancer.server.port=9011
 
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
@@ -162,10 +242,96 @@ services:
 
       # Enable redirection for HTTP and HTTPS
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
+
+  rabbitmq:
+    image: '${DOCKER_IMAGE_QUEUE?Variable not set}:${TAG-latest}'
+    build:
+      context: rabbitmq
+      args:
+        TZ: ${TZ?Variable not set}
+    env_file:
+      - .env
+    networks:
+      - traefik-public
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+
+  flower:
+    image: '${DOCKER_IMAGE_FLOWER?Variable not set}:${TAG-latest}'
+    build:
+      context: flower-app
+      dockerfile: Dockerfile
+      args:
+        PRIVATE_PYPI_HOST: ${PRIVATE_PYPI_HOST?Variable not set}
+        PRIVATE_PYPI_PORT: ${PRIVATE_PYPI_PORT?Variable not set}
+        PRIVATE_PYPI_INDEX: ${PRIVATE_PYPI_INDEX?Variable not set}
+        TZ: ${TZ?Variable not set}
+    env_file:
+      - .env
+    ports:
+      - ${FLOWER_PORT?Variable not set}:${FLOWER_PORT?Variable not set}
+    depends_on:
+      - rabbitmq
+    networks:
+      - traefik-public
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+
+  worker-queue-alpha:
+    image: '${DOCKER_IMAGE_WORKER_ALPHA?Variable not set}:${TAG-latest}'
+    build:
+      context: workers/worker-queue-alpha
+      dockerfile: Dockerfile
+      args:
+        PRIVATE_PYPI_HOST: ${PRIVATE_PYPI_HOST?Variable not set}
+        PRIVATE_PYPI_PORT: ${PRIVATE_PYPI_PORT?Variable not set}
+        PRIVATE_PYPI_INDEX: ${PRIVATE_PYPI_INDEX?Variable not set}
+        TZ: ${TZ?Variable not set}
+    env_file:
+      - .env
+    platform: linux/amd64 # Patch for M1 Mac
+    networks:
+      - traefik-public
+      - default
+    depends_on:
+      - rabbitmq
+      - db
+
+  worker-queue-beta:
+    image: '${DOCKER_IMAGE_WORKER_BETA?Variable not set}:${TAG-latest}'
+    build:
+      context: workers/worker-queue-beta
+      dockerfile: Dockerfile
+      args:
+        PRIVATE_PYPI_HOST: ${PRIVATE_PYPI_HOST?Variable not set}
+        PRIVATE_PYPI_PORT: ${PRIVATE_PYPI_PORT?Variable not set}
+        PRIVATE_PYPI_INDEX: ${PRIVATE_PYPI_INDEX?Variable not set}
+        TZ: ${TZ?Variable not set}
+    env_file:
+      - .env
+    platform: linux/amd64 # Patch for M1 Mac
+    networks:
+      - traefik-public
+      - default
+    depends_on:
+      - rabbitmq
+      - db
+
+
 volumes:
   app-db-data:
+  fusionauth_config:
+  search_data:
 
 networks:
   traefik-public:
     # Allow setting it to false for testing
     external: true
+  search_net:
+    driver: bridge

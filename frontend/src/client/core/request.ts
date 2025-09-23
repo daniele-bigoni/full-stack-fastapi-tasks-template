@@ -65,8 +65,8 @@ export const getQueryString = (params: Record<string, unknown>): string => {
 	return qs.length ? `?${qs.join('&')}` : '';
 };
 
-const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
-	const encoder = config.ENCODE_PATH || encodeURI;
+export const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
+  const encoder = config.ENCODE_PATH || encodeURI
 
 	const path = options.url
 		.replace('{api-version}', config.VERSION)

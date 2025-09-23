@@ -1,26 +1,44 @@
 import uuid
 
+import email_validator
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
+from datetime import datetime
+
+from . import settings
+
+email_validator.SPECIAL_USE_DOMAIN_NAMES.remove("local")
 
 
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
-    is_active: bool = True
+    is_active: bool = False
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    creation_time: datetime = Field(default_factory=datetime.now, nullable=False)
 
 
 # Properties to receive via API on creation
-class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=40)
+class UserCreateEmailPassword(UserBase):
+    is_active: bool = False
+    password: str = Field(min_length=8, max_length=50)
+
+
+class UserCreateSSO(UserBase):
+    is_active: bool = True
+    sso_provider: str | None = Field(default=None, max_length=255)
+    sso_openid: str | None = Field(default=None, max_length=255)
 
 
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=40)
     full_name: str | None = Field(default=None, max_length=255)
+
+
+class UserActivate(SQLModel):
+    token: str
 
 
 # Properties to receive via API on update, all are optional
@@ -43,6 +61,9 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    sso_provider: str | None = Field(default=None, max_length=255)
+    sso_openid: str | None = Field(default=None, max_length=255)
+
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
@@ -75,6 +96,7 @@ class ItemUpdate(ItemBase):
 # Database model, database table inferred from class name
 class Item(ItemBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    title: str = Field(max_length=255)
     owner_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )

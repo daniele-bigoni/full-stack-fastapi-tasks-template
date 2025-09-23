@@ -7,10 +7,11 @@ from typing import Any
 import emails  # type: ignore
 import jwt
 from jinja2 import Template
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 
 from app.core import security
 from app.core.config import settings
+from stack_datamodel import User
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def send_email(
     if settings.SMTP_USER:
         smtp_options["user"] = settings.SMTP_USER
     if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
+        smtp_options["password"] = settings.SMTP_PASSWORD.get_secret_value()
     response = message.send(to=email_to, smtp=smtp_options)
     logger.info(f"send email result: {response}")
 
@@ -82,8 +83,27 @@ def generate_reset_password_email(email_to: str, email: str, token: str) -> Emai
     return EmailData(html_content=html_content, subject=subject)
 
 
+def generate_new_account_mail_verification_email(
+        email_to: str,
+        activation_token: str,
+        activation_token_expire_minutes: int
+) -> EmailData:
+    project_name = settings.PROJECT_NAME
+    subject = f"{project_name} - email verification"
+    html_content = render_email_template(
+        template_name="new_account_mail_verification.html",
+        context={
+            "project_name": settings.PROJECT_NAME,
+            "email": email_to,
+            "link": settings.FRONTEND_HOST + '/activate' + f"?token={activation_token}",
+            "activation_token_expire_minutes": activation_token_expire_minutes,
+        }
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+
 def generate_new_account_email(
-    email_to: str, username: str, password: str
+    email_to: str, username: str
 ) -> EmailData:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account for user {username}"
@@ -92,7 +112,6 @@ def generate_new_account_email(
         context={
             "project_name": settings.PROJECT_NAME,
             "username": username,
-            "password": password,
             "email": email_to,
             "link": settings.FRONTEND_HOST,
         },
@@ -100,8 +119,23 @@ def generate_new_account_email(
     return EmailData(html_content=html_content, subject=subject)
 
 
-def generate_password_reset_token(email: str) -> str:
-    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+def send_new_activation_token(user: User):
+    activation_token = generate_verification_token(str(user.email))
+    if settings.emails_enabled and user.email:
+        email_data = generate_new_account_mail_verification_email(
+            email_to=str(user.email),
+            activation_token=activation_token,
+            activation_token_expire_minutes=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES
+        )
+        send_email(
+            email_to=str(user.email),
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
+
+
+def generate_verification_token(email: str) -> str:
+    delta = timedelta(minutes=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES)
     now = datetime.now(timezone.utc)
     expires = now + delta
     exp = expires.timestamp()
@@ -113,11 +147,36 @@ def generate_password_reset_token(email: str) -> str:
     return encoded_jwt
 
 
-def verify_password_reset_token(token: str) -> str | None:
+def verify_verification_token(token: str) -> dict[str, Any] | None:
+    """
+    Args:
+        token: JWT token
+
+    Returns:
+        dict: dictionary containing the email associated to the token and whether the token was expired or not
+    """
     try:
         decoded_token = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM],
+            require=["exp", "nbf"],
+            options=dict(
+                verify_exp=True,
+                verify_nbf=True
+            )
         )
-        return str(decoded_token["sub"])
+        return {'email': str(decoded_token["sub"]), 'expired': False}
+    except ExpiredSignatureError:
+        try:
+            decoded_token = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=[security.ALGORITHM],
+                require=["exp", "nbf"],
+                options=dict(
+                    verify_exp=False,
+                    verify_nbf=True
+                )
+            )
+            return {'email': str(decoded_token["sub"]), 'expired': True}
+        except InvalidTokenError:
+            return None
     except InvalidTokenError:
         return None

@@ -2,6 +2,7 @@ import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
@@ -19,6 +20,9 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )
+# we need this to save temporary code & state in session (OAuth)
+app.add_middleware(SessionMiddleware, secret_key="some-random-string")
+
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

@@ -1,5 +1,8 @@
 FROM python:3.10
 
+ARG TZ
+ENV TZ=$TZ
+
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/
@@ -20,6 +23,15 @@ ENV UV_COMPILE_BYTECODE=1
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
 ENV UV_LINK_MODE=copy
 
+
+# Add private pypi repo as first choice
+ARG PRIVATE_PYPI_HOST
+ARG PRIVATE_PYPI_PORT
+ARG PRIVATE_PYPI_INDEX
+ENV UV_DEFAULT_INDEX="http://$PRIVATE_PYPI_HOST:$PRIVATE_PYPI_PORT/$PRIVATE_PYPI_INDEX/"
+ENV UV_INDEX="https://pypi.org/simple"
+ENV UV_INDEX_STRATEGY="first-index"
+
 # Install dependencies
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -29,12 +41,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PYTHONPATH=/app
 
-COPY ./scripts /app/scripts
+COPY scripts /app/scripts
 
-COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
+COPY pyproject.toml ./uv.lock ./alembic.ini /app/
 
-COPY ./app /app/app
-COPY ./tests /app/tests
+COPY app /app/app
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers

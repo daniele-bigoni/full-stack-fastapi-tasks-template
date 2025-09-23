@@ -1,0 +1,16 @@
+services:
+  pypiserver-local:
+    ports:
+      - 8082:8080
+    build:
+      context: pypiserver
+    volumes:
+      - pypi-volume:/data/packages
+    networks:
+      - pypiserver-network
+
+volumes:
+  pypi-volume:
+
+networks:
+  pypiserver-network:

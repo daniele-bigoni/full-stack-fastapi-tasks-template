@@ -170,3 +170,15 @@ The email templates are in `./backend/app/email-templates/`. Here, there are two
 Before continuing, ensure you have the [MJML extension](https://marketplace.visualstudio.com/items?itemName=attilabuti.vscode-mjml) installed in your VS Code.
 
 Once you have the MJML extension installed, you can create a new email template in the `src` directory. After creating the new email template and with the `.mjml` file open in your editor, open the command palette with `Ctrl+Shift+P` and search for `MJML: Export to HTML`. This will convert the `.mjml` file to a `.html` file and now you can save it in the build directory.
+
+## SSO authentication
+
+An example implementation of SSO authentication is provided using [FusionAuth](https://fusionauth.io/).
+The script ``./app/api/routes/login.py`` defines function and routes needed to interact with the authentication server.
+
+## Celery tasks
+
+The asynchronous task queue is implemented with [Celery](https://docs.celeryq.dev/).
+Example routes to start tasks are implemented in ``./app/api/routes/tasks.py``.
+Tasks are defined by the workers ([docs](../workers/README.md)) and payload data models are shared by the 
+backend and workers through the use of the common package ``stack-datamodel`` ([docs](../pypiserver/README.md)).

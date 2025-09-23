@@ -1,0 +1,16 @@
+<mjml>
+  <mj-body background-color="#fafbfc">
+    <mj-section background-color="#fff" padding="40px 20px">
+      <mj-column vertical-align="middle" width="100%">
+        <mj-text align="center" padding="35px" font-size="20px" color="#333">{{ project_name }} - Email verification</mj-text>
+        <mj-text align="left" font-size="16px" padding-left="25px" padding-right="25px" font-family="Arial, Helvetica, sans-serif" color="#555"><span style="font-weight: bold">{{ project_name }}</span> received a request to register a new user with your e-mail account: <span style="font-weight: bold">{{ email }}</span>.</mj-text>
+        <mj-text align="left" font-size="16px" padding-left="25px" padding-right="25px" font-family="Arial, Helvetica, sans-serif" color="#555">If this request originated from you, please use the activation link below:</mj-text>
+        <mj-button align="center" font-size="18px" background-color="#009688" border-radius="8px" color="#fff" href="{{ link }}" padding="15px 30px">Activate</mj-button>
+        <mj-text align="left" font-size="16px" padding-left="25px" padding-right="25px" font-family="Arial, Helvetica, sans-serif" color="#555">The link will be valid for {{ activation_token_expire_minutes }} minutes.</mj-text>
+        <mj-text align="left" font-size="16px" padding-left="25px" padding-right="25px" font-family="Arial, Helvetica, sans-serif" color="#555">If the request did not originate from you, please disregard this email.</mj-text>
+        <mj-text align="left" font-size="16px" padding-left="25px" padding-right="25px" font-family="Arial, Helvetica, sans-serif" color="#555">Best regards, the <span style="font-weight: bold">{{ project_name }}</span> team.</mj-text>
+        <mj-divider border-color="#ccc" border-width="2px"></mj-divider>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -12,19 +12,21 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
-from app.models import (
+from stack_datamodel import (
     Item,
     Message,
     UpdatePassword,
     User,
-    UserCreate,
+    UserCreateEmailPassword,
     UserPublic,
     UserRegister,
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+    UserActivate,
 )
-from app.utils import generate_new_account_email, send_email
+from app.utils import generate_new_account_email, send_email, generate_new_account_mail_verification_email, \
+    generate_verification_token, verify_verification_token, send_new_activation_token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -51,7 +53,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+def create_user(*, session: SessionDep, user_in: UserCreateEmailPassword) -> Any:
     """
     Create new user.
     """
@@ -62,7 +64,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
+    user = crud.create_user_email_and_password(session=session, user_create=user_in)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -150,8 +152,44 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             status_code=400,
             detail="The user with this email already exists in the system",
         )
-    user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
+    user_create = UserCreateEmailPassword.model_validate(user_in)
+    user = crud.create_user_email_and_password(session=session, user_create=user_create)
+    send_new_activation_token(user)
+    return user
+
+
+@router.post("/activate", response_model=UserPublic)
+def activate_user(session: SessionDep, body: UserActivate) -> Any:
+    """
+    Create new user without the need to be logged in.
+    """
+    d = verify_verification_token(token=body.token)
+    if not d:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = crud.get_user_by_email(session=session, email=d['email'])
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+    if user.is_active:
+        return user
+    if d['expired']:
+        send_new_activation_token(user)
+        raise HTTPException(
+            status_code=400,
+            detail="The provided token is expired. A new token has been sent to the associated e-mail."
+        )
+    user = crud.activate_user(session=session, db_user=user)
+    email_data = generate_new_account_email(
+        email_to=str(user.email), username=str(user.email)
+    )
+    send_email(
+        email_to=str(user.email),
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+
     return user
 
 

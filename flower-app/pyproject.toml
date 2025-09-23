@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "flower-app"
+version = "0.1.0"
+description = ""
+authors = ["Daniele Bigoni <dabi@limitcycle.it>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^2.7"
+pydantic-settings = "^2.2"
+psycopg = {extras = ["binary"], version = "^3.1.13"}
+
+celery = "^5.4"
+flower = "^2.0"
+
+# Private repositroy packages
+stack-settings="*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

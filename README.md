@@ -1,3 +1,41 @@
+# Fuller Stack
+
+This is a fork and an extension of the <a href="https://github.com/fastapi/full-stack-fastapi-template">Full Stack FastAPI Template</a>.
+At the end of this first section you can find all the original documentation. Every subsection (e.g., backend, frontend etc)
+will contain descriptions of the extensions at the end of the relative READMEs.
+
+Main features of this fork:
+
+- 🚅 A **queueing system** decoupled from the backend
+    - 🐰 [RabbitMQ](https://www.rabbitmq.com/) as a message broker ([docs](./rabbitmq/README.md))
+    - 🌱 [Celery](https://docs.celeryq.dev/) as a distributed task queue ([docs](./workers/README.md))
+- 🎁 A [dockerized PyPi Server](https://github.com/pypiserver/pypiserver) to share packages among micro-services ([docs](./pypiserver/README.md))
+- 🔒 A basic local SSO configuration with [FusionAuth](https://fusionauth.io/) ([docs](./fusionauth/README.md))
+
+The data model and task definitions have been abstracted from the backend to make them sharable with workers.
+To do so, they have been defined python packages that are served by a dedicated PyPi server.
+Therefore, in order to start the stack, one needs to first start the [PyPi server](./pypiserver/README.md) and populate it with 
+the available packages ([uv](https://docs.astral.sh/uv/) is required):
+
+```console
+docker compose -f docker-compose-pypi.yml up
+./pypiserver/upload.sh
+```
+
+Then you can start the stack:
+
+```console
+docker compose up
+```
+
+## Workers development
+
+Workers docs: [workers/README.md](workers/README.md).
+
+## PyPi Packages
+
+PyPi Server Docs: [pypiserver/README.md](pypiserver/README.md)
+
 # Full Stack FastAPI Template
 
 <a href="https://github.com/fastapi/full-stack-fastapi-template/actions?query=workflow%3ATest" target="_blank"><img src="https://github.com/fastapi/full-stack-fastapi-template/workflows/Test/badge.svg" alt="Test"></a>
@@ -138,7 +176,7 @@ Before deploying it, make sure you change at least the values for:
 
 You can (and should) pass these as environment variables from secrets.
 
-Read the [deployment.md](./deployment.md) docs for more details.
+Read the [deployment.md](deployment.md) docs for more details.
 
 ### Generate Secret Keys
 
@@ -214,25 +252,25 @@ The input variables, with their default values (some auto generated) are:
 
 ## Backend Development
 
-Backend docs: [backend/README.md](./backend/README.md).
+Backend docs: [backend/README.md](backend/README.md).
 
 ## Frontend Development
 
-Frontend docs: [frontend/README.md](./frontend/README.md).
+Frontend docs: [frontend/README.md](frontend/README.md).
 
 ## Deployment
 
-Deployment docs: [deployment.md](./deployment.md).
+Deployment docs: [deployment.md](deployment.md).
 
 ## Development
 
-General development docs: [development.md](./development.md).
+General development docs: [development.md](development.md).
 
 This includes using Docker Compose, custom local domains, `.env` configurations, etc.
 
 ## Release Notes
 
-Check the file [release-notes.md](./release-notes.md).
+Check the file [release-notes.md](release-notes.md).
 
 ## License
 

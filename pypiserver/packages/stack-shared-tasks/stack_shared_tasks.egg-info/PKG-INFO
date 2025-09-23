@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: stack-shared-tasks
+Version: 0.1.1
+Summary: Example shared tasks among workers and backend
+Author-email: Admin <admin@stack.local>
+Requires-Python: <4.0,>=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: celery<6.0.0,>=5.4.0
+Requires-Dist: stack-datamodel

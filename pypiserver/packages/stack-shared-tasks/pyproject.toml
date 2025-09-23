@@ -1,0 +1,14 @@
+[project]
+name = "stack-shared-tasks"
+version = "0.1.1"
+description = "Example shared tasks among workers and backend"
+authors = [
+    {name = "Admin", email= "admin@stack.local"}
+]
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "celery<6.0.0,>=5.4.0",
+    # Private repositroy packages
+    "stack-datamodel"
+]
