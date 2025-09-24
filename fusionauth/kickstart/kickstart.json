@@ -76,8 +76,8 @@
           "oauthConfiguration": {
             "authorizedURLValidationPolicy": "AllowWildcards",
             "authorizedRedirectURLs": [
-              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-a/callback",
-              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-a/callback-html"
+              "http://localhost:8000/api/v1/sso/fusionauth/app-a/callback",
+              "http://localhost:8000/api/v1/sso/fusionauth/app-a/callback-html"
             ],
             "authorizedOriginURLs": [
               "http://localhost:8000",
@@ -131,8 +131,8 @@
           "oauthConfiguration": {
             "authorizedURLValidationPolicy": "AllowWildcards",
             "authorizedRedirectURLs": [
-              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-b/callback",
-              "http://localhost:8000/api/v1/auth/sso/fusionauth/app-b/callback-html"
+              "http://localhost:8000/api/v1/sso/fusionauth/app-b/callback",
+              "http://localhost:8000/api/v1/sso/fusionauth/app-b/callback-html"
             ],
             "authorizedOriginURLs": [
               "http://localhost:8000",

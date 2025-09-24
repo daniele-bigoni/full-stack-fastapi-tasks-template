@@ -171,6 +171,17 @@ Before continuing, ensure you have the [MJML extension](https://marketplace.visu
 
 Once you have the MJML extension installed, you can create a new email template in the `src` directory. After creating the new email template and with the `.mjml` file open in your editor, open the command palette with `Ctrl+Shift+P` and search for `MJML: Export to HTML`. This will convert the `.mjml` file to a `.html` file and now you can save it in the build directory.
 
+# Fuller Stack
+
+## Updating dependencies
+
+To update the ``uv.lock`` files of the workers you must first start the [PyPi Server](../pypiserver/README.md)
+and then run:
+
+```console
+uv lock --default-index http://127.0.0.1:8082 --index https://pypi.org/simple --upgrade
+```
+
 ## SSO authentication
 
 An example implementation of SSO authentication is provided using [FusionAuth](https://fusionauth.io/).
