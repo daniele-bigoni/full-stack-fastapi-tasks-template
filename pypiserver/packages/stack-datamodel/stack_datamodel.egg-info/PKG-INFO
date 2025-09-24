@@ -7,3 +7,4 @@ Requires-Python: <4.0,>=3.10
 Description-Content-Type: text/markdown
 Requires-Dist: stack_settings<1.0.0,>=0.1.0
 Requires-Dist: sqlmodel<1.0.0,>=0.0.16
+Requires-Dist: email-validator<3.0.0,>=2.3.0

@@ -1,25 +1,16 @@
-[tool.poetry]
+[project]
 name = "worker-queue-alpha"
 version = "0.1.0"
 description = ""
-authors = ["Daniele Bigoni <dabi@limitcycle.it>"]
+authors = [{ name = "Daniele Bigoni", email = "dabi@limitcycle.it" }]
+requires-python = "~=3.13.0"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-pydantic = "^2.7"
-pydantic-settings = "^2.2"
-psycopg = {extras = ["binary"], version = "^3.1.13"}
-
-celery = "^5.4"
-
-# Private repositroy packages
-stack-datamodel = "*"
-stack-shared-tasks = "*"
-stack-settings="*"
-
-# Specific worker packages
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+dependencies = [
+    "pydantic~=2.7",
+    "pydantic-settings~=2.2",
+    "psycopg[binary]>=3.1.13,<4",
+    "celery~=5.4",
+    "stack-datamodel",
+    "stack-shared-tasks",
+    "stack-settings",
+]

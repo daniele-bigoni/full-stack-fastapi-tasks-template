@@ -302,6 +302,7 @@ services:
     depends_on:
       - rabbitmq
       - db
+      - prestart
 
   worker-queue-beta:
     image: '${DOCKER_IMAGE_WORKER_BETA?Variable not set}:${TAG-latest}'
@@ -322,6 +323,7 @@ services:
     depends_on:
       - rabbitmq
       - db
+      - prestart
 
 
 volumes:
