@@ -29,7 +29,7 @@ dependencies = [
     "authlib<2.0.0,>=1.4.0",
     "itsdangerous<3.0.0,>=2.2.0",
     # Celery
-    "celery<6.0.0,>=5.4",
+    "celery~=5.4.0",
     # Private repositroy packages
     "stack-datamodel<1.0.0,>=0.0.0",
     "stack-settings<1.0.0,>=0.0.0"

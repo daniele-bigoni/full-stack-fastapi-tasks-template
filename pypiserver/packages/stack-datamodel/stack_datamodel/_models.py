@@ -5,8 +5,6 @@ from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 from datetime import datetime
 
-from . import settings
-
 email_validator.SPECIAL_USE_DOMAIN_NAMES.remove("local")
 
 
