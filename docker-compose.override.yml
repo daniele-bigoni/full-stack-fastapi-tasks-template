@@ -161,14 +161,36 @@ services:
   worker-queue-alpha:
     build:
       network: host
-    volumes:
-      - ./workers/worker-queue-alpha:/app
+    develop:
+      watch:
+        - path: ./workers/worker-queue-alpha/worker
+          action: sync
+          target: /app/worker
+        - path: ./workers/worker-queue-alpha/pyproject.toml
+          action: rebuild
+        - path: ./pypiserver/packages/stack-datamodel
+          action: rebuild
+        - path: ./pypiserver/packages/stack-settings
+          action: rebuild
+        - path: ./pypiserver/packages/stack-shared-tasks
+          action: rebuild
 
   worker-queue-beta:
     build:
       network: host
-    volumes:
-      - ./workers/worker-queue-beta:/app
+    develop:
+      watch:
+        - path: ./workers/worker-queue-beta/worker
+          action: sync
+          target: /app/worker
+        - path: ./workers/worker-queue-beta/pyproject.toml
+          action: rebuild
+        - path: ./pypiserver/packages/stack-datamodel
+          action: rebuild
+        - path: ./pypiserver/packages/stack-settings
+          action: rebuild
+        - path: ./pypiserver/packages/stack-shared-tasks
+          action: rebuild
 
 networks:
   traefik-public:

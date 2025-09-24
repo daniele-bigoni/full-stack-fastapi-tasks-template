@@ -5,34 +5,39 @@ ENV TZ=$TZ
 
 WORKDIR /app/
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
-    cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false
+# Install uv
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+
+# Place executables in the environment at the front of the path
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Compile bytecode
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
+ENV UV_COMPILE_BYTECODE=1
+
+# uv Cache
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
+ENV UV_LINK_MODE=copy
 
 
 FROM base AS install
-
-# Copy poetry.lock* in case it doesn't exist in the repo
-# COPY ./pyproject.toml ./poetry.lock* /app/
-# We avoid using the poetry lock to disentangle from the potential use of local vs remote private pypi
-COPY pyproject.toml /app/
 
 # Add private pypi repo as first choice
 ARG PRIVATE_PYPI_HOST
 ARG PRIVATE_PYPI_PORT
 ARG PRIVATE_PYPI_INDEX
-RUN poetry source add --priority=primary private-pypi "http://$PRIVATE_PYPI_HOST:$PRIVATE_PYPI_PORT/$PRIVATE_PYPI_INDEX/"
+ENV UV_DEFAULT_INDEX="http://$PRIVATE_PYPI_HOST:$PRIVATE_PYPI_PORT/$PRIVATE_PYPI_INDEX/"
+ENV UV_INDEX="https://pypi.org/simple"
+ENV UV_INDEX_STRATEGY="first-index"
 
-
-# Install dependencies
-RUN poetry install --no-root
-
-
-FROM install AS release
-
+COPY README.md pyproject.toml uv.lock /app/
 COPY worker /app/worker
+
+# Sync the project
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN uv sync --frozen
 
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
 ENTRYPOINT celery -A worker.main worker -l INFO -Q shared,beta

@@ -76,7 +76,7 @@ const useAuth = () => {
     const loginPopup = window.open(
         getUrl(OpenAPI, {
           method: "GET",
-          url: `/api/v1/auth/sso/fusionauth/${app}/login-html`,
+          url: `/api/v1/sso/fusionauth/${app}/login-html`,
           mediaType: "application/x-www-form-urlencoded",
           errors: {
             422: "Validation Error",

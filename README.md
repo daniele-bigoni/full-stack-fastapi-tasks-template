@@ -30,11 +30,17 @@ docker compose up
 
 ## Workers development
 
-Workers docs: [workers/README.md](workers/README.md).
+Workers: [docs](workers/README.md).
 
 ## PyPi Packages
 
-PyPi Server Docs: [pypiserver/README.md](pypiserver/README.md)
+PyPi Server: [docs](pypiserver/README.md)
+
+## SSO
+
+FusionAuth Server: [docs](fusionauth/README.md)
+
+Backend: [docs](backend/README.md)
 
 # Full Stack FastAPI Template
 

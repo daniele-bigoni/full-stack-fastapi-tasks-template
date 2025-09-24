@@ -300,8 +300,13 @@ services:
       - traefik-public
       - default
     depends_on:
-      - rabbitmq
-      - db
+      db:
+        condition: service_healthy
+        restart: true
+      prestart:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_started
 
   worker-queue-beta:
     image: '${DOCKER_IMAGE_WORKER_BETA?Variable not set}:${TAG-latest}'
@@ -320,8 +325,13 @@ services:
       - traefik-public
       - default
     depends_on:
-      - rabbitmq
-      - db
+      db:
+        condition: service_healthy
+        restart: true
+      prestart:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_started
 
 
 volumes:
