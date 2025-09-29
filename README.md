@@ -19,7 +19,6 @@ the available packages ([uv](https://docs.astral.sh/uv/) is required):
 
 ```console
 docker compose -f docker-compose-pypi.yml up
-./pypiserver/upload.sh
 ```
 
 Then you can start the stack:
