@@ -15,10 +15,11 @@ Main features of this fork:
 The data model and task definitions have been abstracted from the backend to make them sharable with workers.
 To do so, they have been defined python packages that are served by a dedicated PyPi server.
 Therefore, in order to start the stack, one needs to first start the [PyPi server](./pypiserver/README.md) and populate it with 
-the available packages ([uv](https://docs.astral.sh/uv/) is required):
+the available packages (we do so in ``watch`` mode so that we 
+can easily update the repository whenever packages are updated in ``./pypiserver/dist``):
 
 ```console
-docker compose -f docker-compose-pypi.yml up
+docker compose -f docker-compose-pypi.yml watch
 ```
 
 Then you can start the stack:

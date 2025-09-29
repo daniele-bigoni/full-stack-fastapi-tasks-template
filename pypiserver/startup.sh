@@ -7,6 +7,6 @@ OUT_PATH=$2
 for dir in $PKGS_PATH/*/
 do
   cd $dir \
-    && uv build -o "${OUT_PATH}" \
+    && uv build -o "${PWD_PATH}/${OUT_PATH}" \
     && cd $PWD_PATH
 done

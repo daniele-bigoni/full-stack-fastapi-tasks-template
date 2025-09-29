@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: stack-datamodel
-Version: 0.1.4
+Version: 0.1.5
 Summary: SQLModel stack data model
 Author-email: Admin <admin@stack.local>
 Requires-Python: <4.0,>=3.10

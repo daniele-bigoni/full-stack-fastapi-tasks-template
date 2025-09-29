@@ -1,9 +1,9 @@
 services:
   repository:
-    ports:
-      - 8082:8082
     build:
       context: pypiserver
+    ports:
+      - 8082:8082
     volumes:
       - repository-volume:/data/packages
     networks:
@@ -13,6 +13,14 @@ services:
       interval: 60s
       retries: 20
       start_period: 5s
+    develop:
+      watch:
+        - path: ./pypiserver/dist
+          action: sync
+          target: /data/packages
+          ignore:
+            - ./pypiserver/.gitkeep
+            - ./pypiserver/.gitignore
 
 volumes:
   repository-volume:

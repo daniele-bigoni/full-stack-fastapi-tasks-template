@@ -23,10 +23,8 @@ ENV UV_LINK_MODE=copy
 COPY packages /src/packages
 COPY startup.sh /src/startup.sh
 
-WORKDIR /src
-
-RUN ./startup.sh /src/packages /data/packages
-
 WORKDIR /
+
+RUN /src/startup.sh /src/packages /data/packages
 
 CMD ["run","-a","update","-p","8082","-P","/.htpasswd","--overwrite","/data/packages/"]
