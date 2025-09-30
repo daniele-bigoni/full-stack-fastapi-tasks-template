@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-stack_settings/__init__.py
-stack_settings/config.py
-stack_settings.egg-info/PKG-INFO
-stack_settings.egg-info/SOURCES.txt
-stack_settings.egg-info/dependency_links.txt
-stack_settings.egg-info/requires.txt
-stack_settings.egg-info/top_level.txt

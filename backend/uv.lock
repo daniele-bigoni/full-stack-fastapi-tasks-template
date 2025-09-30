@@ -1855,9 +1855,9 @@ dependencies = [
     { name = "sqlmodel" },
     { name = "stack-settings" },
 ]
-sdist = { url = "http://127.0.0.1:8082/packages/stack_datamodel-0.1.4.tar.gz", hash = "sha256:b7b536498569f8bb51335e9d1563657356a5f1fdb8c1eb26b2b8ef137fb0bfc7" }
+sdist = { url = "http://127.0.0.1:8082/packages/stack_datamodel-0.1.4.tar.gz" }
 wheels = [
-    { url = "http://127.0.0.1:8082/packages/stack_datamodel-0.1.4-py3-none-any.whl", hash = "sha256:da0e90db10baec6478c9b42110abe759e51e4e1769c00967cd8548869c966a9e" },
+    { url = "http://127.0.0.1:8082/packages/stack_datamodel-0.1.4-py3-none-any.whl" },
 ]
 
 [[package]]
@@ -1869,9 +1869,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pytz" },
 ]
-sdist = { url = "http://127.0.0.1:8082/packages/stack_settings-0.1.8.tar.gz", hash = "sha256:39eb699c40570081e020437f8af291a3d56ae3fcbab8444877a9d899d39430ad" }
+sdist = { url = "http://127.0.0.1:8082/packages/stack_settings-0.1.8.tar.gz" }
 wheels = [
-    { url = "http://127.0.0.1:8082/packages/stack_settings-0.1.8-py3-none-any.whl", hash = "sha256:ff294212919378da5fad500b51023a0fdb3f262011797b9053c141a71b0b3c6c" },
+    { url = "http://127.0.0.1:8082/packages/stack_settings-0.1.8-py3-none-any.whl" },
 ]
 
 [[package]]
