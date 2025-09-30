@@ -1,16 +1,29 @@
 services:
-  pypiserver-local:
-    ports:
-      - 8082:8080
+  repository:
     build:
       context: pypiserver
+    ports:
+      - 8082:8082
     volumes:
-      - pypi-volume:/data/packages
+      - repository-volume:/data/packages
     networks:
-      - pypiserver-network
+      - repository-network
+    healthcheck:
+      test: curl -s http://localhost:8082/ | grep -q "Welcome to pypiserver!" || exit 1
+      interval: 60s
+      retries: 20
+      start_period: 5s
+    develop:
+      watch:
+        - path: ./pypiserver/dist
+          action: sync
+          target: /data/packages
+          ignore:
+            - ./pypiserver/.gitkeep
+            - ./pypiserver/.gitignore
 
 volumes:
-  pypi-volume:
+  repository-volume:
 
 networks:
-  pypiserver-network:
+  repository-network:

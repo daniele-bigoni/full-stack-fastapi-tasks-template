@@ -91,9 +91,7 @@ services:
             - .venv
         - path: ./backend/pyproject.toml
           action: rebuild
-        - path: ./pypiserver/packages/stack-datamodel
-          action: rebuild
-        - path: ./pypiserver/packages/stack-settings
+        - path: ./pypiserver/dist
           action: rebuild
     # TODO: remove once coverage is done locally
     volumes:
@@ -168,11 +166,7 @@ services:
           target: /app/worker
         - path: ./workers/worker-queue-alpha/pyproject.toml
           action: rebuild
-        - path: ./pypiserver/packages/stack-datamodel
-          action: rebuild
-        - path: ./pypiserver/packages/stack-settings
-          action: rebuild
-        - path: ./pypiserver/packages/stack-shared-tasks
+        - path: ./pypiserver/dist
           action: rebuild
 
   worker-queue-beta:
@@ -185,11 +179,7 @@ services:
           target: /app/worker
         - path: ./workers/worker-queue-beta/pyproject.toml
           action: rebuild
-        - path: ./pypiserver/packages/stack-datamodel
-          action: rebuild
-        - path: ./pypiserver/packages/stack-settings
-          action: rebuild
-        - path: ./pypiserver/packages/stack-shared-tasks
+        - path: ./pypiserver/dist
           action: rebuild
 
 networks:

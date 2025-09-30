@@ -11,17 +11,22 @@ Three main packages are available from the template:
 
 ## Starting the PyPi Server
 
-From the root folder of the project:
+From the root folder of the project (we do so in ``watch`` mode so that we 
+can easily update the repository whenever packages are updated in ``./pypiserver/dist``):
 
 ```console
-docker compose -f docker-compose-pypi.yml up
+docker compose -f docker-compose-pypi.yml watch
 ```
 
 ## Loading packages to the server
 
 The script ``update.sh`` allows for the automatic loading of all the packages 
-in the folder ``packages`` to the running PyPi Server. From the root folder of the project run:
+in the folder ``packages`` to the running PyPi Server. 
+From the root folder of the project run:
 
 ```console
-./pypiserver/upload.sh
+./pypiserver/update.sh
 ```
+
+This will update the built packages in ``./pypiserver/dist`` and trigger ``sync`` of
+the PyPi server and ``rebuild`` of containers depending on it.

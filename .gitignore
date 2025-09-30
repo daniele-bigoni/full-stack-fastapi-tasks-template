@@ -6,6 +6,7 @@ node_modules/
 /playwright/.cache/
 .idea
 **/__pycache__/
+**/*.egg-info/
 
 .venv*
 

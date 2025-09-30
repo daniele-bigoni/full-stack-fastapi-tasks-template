@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-stack_shared_tasks/__init__.py
-stack_shared_tasks/tasks.py
-stack_shared_tasks.egg-info/PKG-INFO
-stack_shared_tasks.egg-info/SOURCES.txt
-stack_shared_tasks.egg-info/dependency_links.txt
-stack_shared_tasks.egg-info/requires.txt
-stack_shared_tasks.egg-info/top_level.txt
