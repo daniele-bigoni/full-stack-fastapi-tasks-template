@@ -131,9 +131,6 @@ class Settings(BaseSettings):
         return self
 
 
-settings = Settings()  # type: ignore
-
-
 class CeleryConfig(BaseSettings):
     """
     All these variables can be overridden by environment variables
@@ -169,5 +166,3 @@ class CeleryConfig(BaseSettings):
         'multiply-by-summation': {'queue': 'alpha'}
     }
 
-
-celery_config = CeleryConfig()
